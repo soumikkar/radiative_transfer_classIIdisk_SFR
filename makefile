@@ -1,83 +1,46 @@
-# ==========================
-# Fortran Makefile
-# ==========================
+# Compiler and flags
+FC=gfortran
+FFLAGS=-O2 -g -Wall -fcheck=all -cpp
+OBJDIR=obj
 
-# Compiler
-FC = gfortran
+# Program name
+PROGRAM = radiative_transfer
 
-# Compiler flags for standard build (debug + optimization)
-FFLAGS = -c -g -O2 -Wall -fcheck=all
+# List of module files
+MODULES = configure.f90 \
+          common_grid.f90 \
+          common_dust.f90 \
+          common_boundary.f90 \
+          common_montecarlo.f90 \
+          common_montecarloarrays.f90 \
+          common_diffusion.f90 \
+          common_vstruct.f90 \
+          numerical_receipe.f90
 
-# Target executable
-TARGET = disk_model
+# List of source files
+SOURCES = $(MODULES) \
+          dust_main.f90 \
+          diffusion.f90 \
+          vertical_structure.f90 \
+          montecarlo.f90 \
+          main.f90 \
+          main_program.f90
 
-# Source files
-SRCS = disk_global_constants.f90 \
-       disk_params.f90 \
-       disk_grid.f90 \
-       disk_radmc_subroutines.f90 \
-       disk_radmc_inpfiles.f90 \
-       disk_density.f90 \
-       disk_opacity.f90 \
-       disk_mixopacity.f90 \
-       disk_structure.f90 \
-       disk_main_program.f90
+# Object files (OBJDIR prefixed)
+OBJECTS = $(SOURCES:.f90=.o)
 
-# Object files
-OBJS = $(SRCS:.f90=.o)
+# Default rule
+all: $(PROGRAM)
 
-# ==========================
-# Phony targets
-# ==========================
-.PHONY: all clean debug
+# Compile the program
+$(PROGRAM): $(OBJECTS)
+	$(FC) $(FFLAGS) -o $@ $(OBJECTS)
 
-# Default target: build everything
-all: $(TARGET)
+# Compile .f90 to .o
+%.o: %.f90
+	$(FC) $(FFLAGS) -c $<
 
-# Debug build: override FFLAGS
-debug: FFLAGS = -c -g -O0 -Wall -fcheck=all -fbacktrace
-debug: clean all
-
-# Link the final executable
-$(TARGET): $(OBJS)
-	$(FC) $(OBJS) -o $(TARGET)
-
-# ==========================
-# Compilation rules
-# ==========================
-disk_global_constants.o: disk_global_constants.f90
-	$(FC) $(FFLAGS) -o $@ $<
-
-disk_params.o: disk_params.f90 disk_global_constants.o
-	$(FC) $(FFLAGS) -o $@ $<
-
-disk_grid.o: disk_grid.f90 disk_params.o
-	$(FC) $(FFLAGS) -o $@ $<
-
-disk_radmc_subroutines.o: disk_radmc_subroutines.f90
-	$(FC) $(FFLAGS) -o $@ $<
-
-disk_radmc_inpfiles.o: disk_radmc_inpfiles.f90 disk_radmc_subroutines.o
-	$(FC) $(FFLAGS) -o $@ $<
-
-disk_density.o: disk_density.f90 disk_global_constants.o
-	$(FC) $(FFLAGS) -o $@ $<
-
-disk_opacity.o: disk_opacity.f90 disk_global_constants.o disk_radmc_subroutines.o
-	$(FC) $(FFLAGS) -o $@ $<
-
-disk_mixopacity.o: disk_mixopacity.f90 disk_global_constants.o
-	$(FC) $(FFLAGS) -o $@ $<
-
-disk_structure.o: disk_structure.f90 disk_global_constants.o disk_params.o disk_grid.o disk_density.o disk_radmc_subroutines.o disk_radmc_inpfiles.o disk_opacity.o disk_mixopacity.o
-	$(FC) $(FFLAGS) -o $@ $<
-
-disk_main_program.o: disk_main_program.f90 disk_global_constants.o disk_params.o disk_grid.o disk_opacity.o disk_structure.o disk_radmc_inpfiles.o disk_mixopacity.o
-	$(FC) $(FFLAGS) -o $@ $<
-
-# ==========================
-# Clean target
-# ==========================
+# Clean rule
 clean:
-	-rm -f *.o *.mod $(TARGET)
+	rm -f *.o *.mod $(PROGRAM)
 
