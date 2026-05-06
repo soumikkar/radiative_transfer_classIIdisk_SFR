@@ -212,8 +212,8 @@ contains
         params%nr     = 130
         params%nt     = 50
         params%ntex   = 10
-        params%hrgrid = 1.5d0
-        params%hrgmax = PI / 2.0d0
+        params%hrgrid = 0.5d0
+        params%hrgmax = 0.9 * PI / 2.0d0
 
         params%rrefine%nlevr  = 3
         params%rrefine%nspanr = 3
